@@ -34,6 +34,9 @@ namespace thrift {
  * such as additional "arguments" to these methods (stored in the object
  * instance's state).
  */
+
+//负责处理TProcessor类产生的事件
+//主要定义了一些当某事件发生时的处理函数，例如当读取参数之前可以做一些处理功能
 class TProcessorEventHandler {
 public:
   virtual ~TProcessorEventHandler() {}
@@ -44,6 +47,7 @@ public:
    * The return value is passed to all other callbacks
    * for that function invocation.
    */
+  //调用其他回调函数之前调用，期望返回一些有序的上下文对象以便传递给其他回调函数使用
   virtual void* getContext(const char* fn_name, void* serverContext) {
     (void)fn_name;
     (void)serverContext;
@@ -53,6 +57,7 @@ public:
   /**
    * Expected to free resources associated with a context.
    */
+  //期望释放一个上下文有关的资源
   virtual void freeContext(void* ctx, const char* fn_name) {
     (void)ctx;
     (void)fn_name;
@@ -61,6 +66,7 @@ public:
   /**
    * Called before reading arguments.
    */
+  //在读参数以前调用
   virtual void preRead(void* ctx, const char* fn_name) {
     (void)ctx;
     (void)fn_name;
@@ -69,6 +75,7 @@ public:
   /**
    * Called between reading arguments and calling the handler.
    */
+  //在读参数和处理函数之间调用
   virtual void postRead(void* ctx, const char* fn_name, uint32_t bytes) {
     (void)ctx;
     (void)fn_name;
@@ -78,6 +85,7 @@ public:
   /**
    * Called between calling the handler and writing the response.
    */
+  //在处理和写响应之间调用
   virtual void preWrite(void* ctx, const char* fn_name) {
     (void)ctx;
     (void)fn_name;
@@ -86,6 +94,7 @@ public:
   /**
    * Called after writing the response.
    */
+  //在写响应之后调用
   virtual void postWrite(void* ctx, const char* fn_name, uint32_t bytes) {
     (void)ctx;
     (void)fn_name;
@@ -95,6 +104,7 @@ public:
   /**
    * Called when an async function call completes successfully.
    */
+  //当一个异步函数成功完成调用时调用
   virtual void asyncComplete(void* ctx, const char* fn_name) {
     (void)ctx;
     (void)fn_name;
@@ -103,6 +113,7 @@ public:
   /**
    * Called if the handler throws an undeclared exception.
    */
+  //如果处理函数抛出没有定义的异常就会调用此函数
   virtual void handlerError(void* ctx, const char* fn_name) {
     (void)ctx;
     (void)fn_name;
@@ -115,6 +126,7 @@ protected:
 /**
  * A helper class used by the generated code to free each context.
  */
+//这个类是一个帮助类，帮助生成的代码来释放上下文资源
 class TProcessorContextFreer {
 public:
   TProcessorContextFreer(TProcessorEventHandler* handler, void* context, const char* method)
@@ -138,6 +150,8 @@ private:
  * responses to an input stream or forwards data from one pipe onto another.
  *
  */
+
+//负责调用用户定义的服务接口，从一个接口读入数据，写入一个输出接口
 class TProcessor {
 public:
   virtual ~TProcessor() {}
@@ -174,6 +188,8 @@ protected:
  * parameter to a shared_ptr, so that factory->releaseHandler() will be called
  * when the object is no longer needed, instead of deleting the pointer.
  */
+
+//作为shared_ptr的第二个参数传入，在对象不需要的时候，自动调用
 template <typename HandlerFactory_>
 class ReleaseHandler {
 public:
